@@ -24,7 +24,7 @@ class Game {
   constructor() { this.reset(); }
 
   reset() {
-    const back = ['R','N','B','Q','K','B','N',null];
+    const back = ['R','N','B','Q','K','B','N','R'];
     this.board = Array.from({ length: 10 }, () => Array(8).fill(null));
     for (let c = 0; c < 8; c++) {
       this.board[0][c] = back[c] ? { t: back[c], c: 'b' } : null;

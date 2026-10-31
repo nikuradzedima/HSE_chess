@@ -1,6 +1,6 @@
 const vm=require('node:vm'),fs=require('node:fs'),assert=require('node:assert/strict');
 const ctx={window:{}};vm.createContext(ctx);vm.runInContext(fs.readFileSync('js/engine.js','utf8'),ctx);const Game=ctx.window.Chess.Game;
-const g=new Game();assert.equal(g.board.length,10);assert.equal(g.board.flat().filter(p=>p?.c==='w'&&'QR'.includes(p.t)).length,2);
+const g=new Game();assert.equal(g.board.length,10);for(const color of ['w','b']) { assert.equal(g.board.flat().filter(p=>p?.c===color&&'QR'.includes(p.t)).length,3); assert.equal(g.board.flat().filter(p=>p?.c===color).length,16); const row=color==='w'?9:0; assert(g.board[row].every(Boolean)); assert.equal(g.board[row][0].t,'R'); assert.equal(g.board[row][7].t,'R'); }
 function empty(){const x=new Game();x.board=x.board.map(r=>r.map(()=>null));x.board[9][4]={t:'K',c:'w'};x.board[0][4]={t:'K',c:'b'};return x;}
 const a=empty();a.board[5][3]={t:'N',c:'w'};a.board[5][4]={t:'B',c:'w'};a.board[4][3]={t:'Q',c:'w'};a.move(a.legalMoves(9,4)[0]);assert.equal(a.score.w,3);assert.equal(a.score.b,0);a.undo();assert.equal(a.score.w,0);assert.equal(a.plies,0);
 const b=empty();b.plies=10;b.board[8][4]={t:'P',c:'w'};assert.equal(b.legalMoves(8,4).length,0);assert(b.legalMoves(9,4).some(m=>m.to[0]===8&&m.to[1]===4));
