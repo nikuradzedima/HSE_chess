@@ -103,7 +103,7 @@ const Comic = (() => {
                     { transform: 'scale(1)', opacity: 1, filter: 'brightness(1)' }],
                    { duration: 280, easing: 'cubic-bezier(.2,1.4,.4,1)' });
         // замедленный наезд камеры
-        el.querySelector('.cm-hero')?.animate([{ transform: 'scale(1) translateY(4%)' }, { transform: 'scale(1.18) translateY(0)' }],
+        el.querySelector('.cm-hero')?.animate([{ transform: 'scale(.94)' }, { transform: 'scale(1)' }],
           { duration: 2600, easing: 'ease-out', fill: 'forwards' });
         el.querySelector('.cm-bubble')?.animate([{ transform: 'scale(0)', opacity: 0 }, { transform: 'scale(1.1)', opacity: 1, offset: .7 }, { transform: 'scale(1)', opacity: 1 }],
           { duration: 350, delay: 250, fill: 'backwards', easing: 'ease-out' });
