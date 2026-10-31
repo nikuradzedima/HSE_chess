@@ -17,6 +17,7 @@ window.THEME = {
   },
 
   sounds: {
+    'capture:wR': 'assets/sounds/nina-capture.mp3',
     'capture:bK': 'assets/sounds/mishan-capture.mp3',
     start:     '',  // новая партия
     select:    '',  // выбрали фигуру

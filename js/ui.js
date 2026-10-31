@@ -118,8 +118,10 @@ async function tryMove(r, c) {
   try { res=game.move(m); } catch(e) { busy=false; selected=null; targets=[]; render(); return false; }
   ultMode=false; lastMove = m; selected = null; targets = [];
   const p = res.piece;
-  // Keep Mishan's eating voice even when the capture also gives check or wins.
-  Sound.play(res.taken && p.c==='b' && p.t==='K' ? 'capture' : res.event, p.c + (m.promo || p.t));
+  // A character's capture voice also plays on captures that give check or win.
+  const voiceKey = p.c + p.t;
+  const captureVoice = res.taken && THEME.sounds[`capture:${voiceKey}`];
+  Sound.play(captureVoice ? 'capture' : res.event, captureVoice ? voiceKey : p.c + (m.promo || p.t));
   if (autoFlip && !game.result) flipped = game.turn === 'b';
   render();
   try { if(snap) FX.afterMove(snap, res, game); } catch (e) { console.error(e); }

@@ -41,6 +41,12 @@ $('btn-undo').click();assert.equal(ev('game.ults.b'),false);assert.equal(ev('gam
 ev("game.board=Array.from({length:10},()=>Array(8).fill(null));game.board[4][3]={t:'K',c:'b'};game.board[9][0]={t:'K',c:'w'};game.board[4][4]={t:'N',c:'w'};game.turn='b';game.score.b=15;selected=[4,3];targets=game.legalMoves(4,3);render();tryMove(4,4);");
 await clock.tickAsync(9000);assert.equal(ev('game.result.reason'),'контроль центра');assert(soundCalls.some(c=>c[0]==='capture'&&c[1]==='bK'));assert.equal(soundCalls.filter(c=>c[0]==='capture'&&c[1]==='bK').length,eatBefore+2);
 $('over').close();$('btn-undo').click();
+// Both Nina queens share the same capture voice, including a winning capture.
+for(const column of [0,7]) {
+ const beforeNina=soundCalls.filter(c=>c[0]==='capture'&&c[1]==='wR').length;
+ ev(`game.reset();game.board=Array.from({length:10},()=>Array(8).fill(null));game.board[9][4]={t:'K',c:'w'};game.board[0][4]={t:'K',c:'b'};game.board[5][${column}]={t:'R',c:'w'};game.board[5][3]={t:'N',c:'b'};game.score.w=15;selected=[5,${column}];targets=game.legalMoves(...selected);render();tryMove(5,3);`);
+ await clock.tickAsync(9000);assert.equal(ev('game.result.reason'),'контроль центра');assert.equal(soundCalls.filter(c=>c[0]==='capture'&&c[1]==='wR').length,beforeNina+1);$('over').close();$('btn-undo').click();
+}
 // Resignation and draw dialogs.
 $('btn-resign').click();await clock.tickAsync(1000);assert.equal(ev('game.result.reason'),'сдача');$('over').close();$('btn-new').click();$('duel-go').click();await clock.tickAsync(9200);$('btn-draw').click();assert.equal(ev('game.result.reason'),'соглашение');
 assert.deepEqual(errors,[]);clock.uninstall();w.close();console.log('PASS UI: both starts, 12 shots, double-start guard, effect cleanup, 32/16 limits, full 19-ply game, session/thaw, score victory, undo, restart, fishing, resignation, draw; no runtime errors');
