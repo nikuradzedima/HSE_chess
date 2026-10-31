@@ -17,6 +17,7 @@ window.THEME = {
   },
 
   sounds: {
+    'capture:bN': 'assets/sounds/alexander-capture.mp3',
     'capture:wN': 'assets/sounds/pavel-capture.mp3',
     'capture:wR': 'assets/sounds/nina-capture.mp3',
     'capture:bK': 'assets/sounds/mishan-capture.mp3',
