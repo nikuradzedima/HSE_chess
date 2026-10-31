@@ -7,6 +7,8 @@ const Sound = (() => {
   const cache = {};
 
   const synth = {
+    laser:     [[1500, .025], [900, .025], [400, .06]],
+    zonewin:   [[523,.1],[659,.1],[784,.1],[1047,.3]],
     start:     [[523, .08], [659, .08], [784, .15]],
     select:    [[880, .03]],
     move:      [[330, .06]],
@@ -19,8 +21,14 @@ const Sound = (() => {
     illegal:   [[120, .12]],
   };
 
+  function unlock() {
+    try { ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
+      if(ctx.state==='suspended') ctx.resume().catch(()=>{});
+    } catch { /* Audio is optional. */ }
+  }
   function beep(notes) {
     try { ctx = ctx || new (window.AudioContext || window.webkitAudioContext)(); } catch { return; }
+    if(ctx.state==='suspended') ctx.resume().catch(()=>{});
     let t = ctx.currentTime;
     for (const [f, d] of notes) {
       const o = ctx.createOscillator(), g = ctx.createGain();
@@ -44,7 +52,7 @@ const Sound = (() => {
   }
 
   return {
-    play,
+    play, unlock,
     toggle() { enabled = !enabled; localStorage.setItem('chess-sound', enabled ? 'on' : 'off'); return enabled; },
     get enabled() { return enabled; },
   };

@@ -7,6 +7,7 @@ const $ = id => document.getElementById(id);
 const boardEl = $('board');
 
 let busy = true, ultMode = false;
+let introPhase = 'ready';
 let selected = null, targets = [], lastMove = null;
 let autoFlip = localStorage.getItem('chess-flip') === 'on';
 let flipped = false;
@@ -236,6 +237,10 @@ $('btn-ult').onclick=async()=>{
   else { paintHighlights(); $('status').textContent='Выберите фигуру для обмена с Евгением'; }
 };
 function startIntro() {
+  for(const id of ['btn-ult','btn-flip','btn-resign','btn-draw']) $(id).disabled=true;
+  introPhase='ready'; $('duel-gas').disabled=false; $('duel-go').disabled=false;
+  selected=null;targets=[];drag=null;
+  boardEl.classList.remove('flipped','dropping');
   busy=true; $('btn-new').disabled=true; $('btn-undo').disabled=true;
   boardEl.classList.add('intro-board'); boardEl.replaceChildren();
   for(let r=0;r<8;r++) for(let c=0;c<8;c++) {
@@ -245,15 +250,27 @@ function startIntro() {
   $('duel').showModal();
 }
 async function duel() {
+  if(introPhase!=='ready') return;
+  introPhase='playing'; $('duel-gas').disabled=true; $('duel-go').disabled=true;
   $('duel').close(); game.limit=+$('limit').value;
-  boardEl.classList.add('dueling'); say('Дуэль!');
-  const pistols=document.createElement('div'); pistols.className='pistols'; pistols.textContent='🔫'; boardEl.append(pistols);
-  const beam=document.createElement('div'); beam.className='laser'; boardEl.append(beam);
-  for(let i=0;i<12;i++){ Sound.play('move'); await pause(500); }
-  boardEl.classList.remove('dueling'); beam.remove(); pistols.remove();
-  $('scene').replaceChildren(); const phrase=document.createElement('h2'); phrase.textContent='Ладно, давай решим по-мужски'; $('scene').append(phrase,face('wK'),face('bK')); $('scene').hidden=false; say(phrase.textContent);
-  await pause(2200); $('scene').hidden=true; boardEl.classList.remove('intro-board'); busy=false;
-  $('btn-new').disabled=false; $('btn-undo').disabled=false; render(); boardEl.classList.add('dropping'); setTimeout(()=>boardEl.classList.remove('dropping'),900);
+  for(const col of ['w','b']) $('p-'+col).querySelector('.pname').textContent=THEME.names[col]+` · 0 / ${game.limit}`;
+  $('status').textContent='Дуэль: Евгений и Мишан';
+  Sound.unlock(); say('Дуэль!');
+  try {
+    await Duel.run(boardEl);
+    const stage=$('scene');stage.replaceChildren();
+    const phrase=document.createElement('h2');phrase.textContent='Ладно, давай решим по-мужски';
+    stage.append(phrase,face('wK'),face('bK'));stage.hidden=false;say(phrase.textContent);
+    await pause(2200);
+  } catch(e) { console.error('Дуэль:',e); }
+  finally {
+    $('scene').hidden=true;boardEl.classList.remove('intro-board');
+    // Keep input locked while the pieces land, including a new-game click.
+    render();boardEl.classList.add('dropping');
+    await pause(850);boardEl.classList.remove('dropping');
+    for(const id of ['btn-flip','btn-resign','btn-draw']) $(id).disabled=false;
+    busy=false;introPhase='done';$('btn-new').disabled=false;$('btn-undo').disabled=false;render();
+  }
 }
 $('duel-gas').onclick=duel; $('duel-go').onclick=duel;
 $('duel').oncancel=e=>e.preventDefault();
