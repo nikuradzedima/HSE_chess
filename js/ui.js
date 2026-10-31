@@ -118,7 +118,8 @@ async function tryMove(r, c) {
   try { res=game.move(m); } catch(e) { busy=false; selected=null; targets=[]; render(); return false; }
   ultMode=false; lastMove = m; selected = null; targets = [];
   const p = res.piece;
-  Sound.play(res.event, p.c + (m.promo || p.t));
+  // Keep Mishan's eating voice even when the capture also gives check or wins.
+  Sound.play(res.taken && p.c==='b' && p.t==='K' ? 'capture' : res.event, p.c + (m.promo || p.t));
   if (autoFlip && !game.result) flipped = game.turn === 'b';
   render();
   try { if(snap) FX.afterMove(snap, res, game); } catch (e) { console.error(e); }
@@ -225,7 +226,7 @@ async function ultimateScene(m) {
     const fishes=document.createElement('div'); fishes.className='fishes';
     const [r,c]=m.from;
     for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++) { const q=game.at(r+dr,c+dc); if(q && q.c==='w' && q.t!=='K') { const f=document.createElement('span'); f.textContent='🐟'; fishes.append(f); } }
-    stage.append(fishes); const rod=document.createElement('div'); rod.className='rod'; rod.textContent='🎣'; stage.append(rod); say('Ам, ам, ам, ам');
+    stage.append(fishes); const rod=document.createElement('div'); rod.className='rod'; rod.textContent='🎣'; stage.append(rod); if(fishes.children.length) Sound.play('capture','bK');
   } else stage.classList.add('sigma');
   await pause(1800); stage.classList.remove('sigma'); stage.hidden=true;
 }

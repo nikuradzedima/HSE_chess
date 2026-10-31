@@ -9,7 +9,7 @@ w.Element.prototype.animate=function(frames,options){const a={onfinish:null,canc
 w.confirm=()=>true;w.AudioContext=class {constructor(){this.state='running';this.currentTime=0;this.destination={}}createOscillator(){return {frequency:{},connect(){return this},start(){},stop(){}}}createGain(){return {gain:{setValueAtTime(){},exponentialRampToValueAtTime(){}},connect(){return this}}}};
 for(const path of ['theme.js','characters.js','js/engine.js','js/pieces.js','js/fx.js','js/comic.js','js/sound.js','js/duel.js','js/ui.js'])vm.runInContext(fs.readFileSync(path,'utf8'),dom.getInternalVMContext());
 const $=id=>w.document.getElementById(id), ev=s=>vm.runInContext(s,dom.getInternalVMContext());
-const shots=[];ev('Sound').play=event=>shots.push(event);
+const shots=[],soundCalls=[];ev('Sound').play=(event,key)=>{shots.push(event);soundCalls.push([event,key]);};
 assert.equal($('board').querySelectorAll('.cell').length,64);assert.equal($('board').querySelectorAll('.piece').length,2);
 $('limit').value='32';$('duel-gas').click();await clock.tickAsync(1);
 assert.equal($('board').querySelectorAll('.duel-gun').length,2);assert.equal($('board').querySelectorAll('.duel-lasers').length,1);
@@ -34,8 +34,13 @@ $('over').close();$('btn-undo').click();assert.equal(ev('game.result'),null);ass
 $('btn-new').click();$('duel-go').click();await clock.tickAsync(9200);assert.equal(ev('game.score.w'),0);assert.equal(ev('game.ults.w'),false);assert.equal(ev('game.plies'),0);
 // Fishing, including a friendly pawn and two hostile pieces, through its button.
 ev("game.board=Array.from({length:10},()=>Array(8).fill(null));game.board[0][4]={t:'K',c:'b'};game.board[9][4]={t:'K',c:'w'};game.board[1][3]={t:'Q',c:'w'};game.board[1][4]={t:'P',c:'b'};game.board[1][5]={t:'N',c:'w'};game.turn='b';render();");
-$('btn-ult').click();await clock.tickAsync(9500);assert.equal(ev('game.captured.b.length'),2);assert.equal(ev('game.board[1][4].c'),'b');assert.equal(ev('game.ults.b'),true);
+const eatBefore=soundCalls.filter(c=>c[0]==='capture'&&c[1]==='bK').length;
+$('btn-ult').click();await clock.tickAsync(9500);assert.equal(soundCalls.filter(c=>c[0]==='capture'&&c[1]==='bK').length,eatBefore+1);assert.equal(ev('game.captured.b.length'),2);assert.equal(ev('game.board[1][4].c'),'b');assert.equal(ev('game.ults.b'),true);
 $('btn-undo').click();assert.equal(ev('game.ults.b'),false);assert.equal(ev('game.board[1][3].t'),'Q');
+// Ordinary Mishan capture must use his voice even when it wins by center score.
+ev("game.board=Array.from({length:10},()=>Array(8).fill(null));game.board[4][3]={t:'K',c:'b'};game.board[9][0]={t:'K',c:'w'};game.board[4][4]={t:'N',c:'w'};game.turn='b';game.score.b=15;selected=[4,3];targets=game.legalMoves(4,3);render();tryMove(4,4);");
+await clock.tickAsync(9000);assert.equal(ev('game.result.reason'),'контроль центра');assert(soundCalls.some(c=>c[0]==='capture'&&c[1]==='bK'));assert.equal(soundCalls.filter(c=>c[0]==='capture'&&c[1]==='bK').length,eatBefore+2);
+$('over').close();$('btn-undo').click();
 // Resignation and draw dialogs.
 $('btn-resign').click();await clock.tickAsync(1000);assert.equal(ev('game.result.reason'),'сдача');$('over').close();$('btn-new').click();$('duel-go').click();await clock.tickAsync(9200);$('btn-draw').click();assert.equal(ev('game.result.reason'),'соглашение');
 assert.deepEqual(errors,[]);clock.uninstall();w.close();console.log('PASS UI: both starts, 12 shots, double-start guard, effect cleanup, 32/16 limits, full 19-ply game, session/thaw, score victory, undo, restart, fishing, resignation, draw; no runtime errors');

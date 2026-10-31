@@ -17,6 +17,7 @@ window.THEME = {
   },
 
   sounds: {
+    'capture:bK': 'assets/sounds/mishan-capture.mp3',
     start:     '',  // новая партия
     select:    '',  // выбрали фигуру
     move:      '',

@@ -47,13 +47,13 @@ const Sound = (() => {
     if (src) {
       const a = cache[src] = cache[src] || new Audio(src);
       a.currentTime = 0;
-      a.play().catch(() => beep(synth[event] || synth.move));
+      a.play().catch(() => { if(enabled) beep(synth[event] || synth.move); });
     } else if (synth[event]) beep(synth[event]);
   }
 
   return {
     play, unlock,
-    toggle() { enabled = !enabled; localStorage.setItem('chess-sound', enabled ? 'on' : 'off'); return enabled; },
+    toggle() { enabled = !enabled; if(!enabled) Object.values(cache).forEach(a=>{a.pause();a.currentTime=0;}); localStorage.setItem('chess-sound', enabled ? 'on' : 'off'); return enabled; },
     get enabled() { return enabled; },
   };
 })();
