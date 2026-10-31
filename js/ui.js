@@ -66,7 +66,7 @@ function render() {
 
   $('session').textContent = game.sessionActive ? `❄ Сессия: ходов до конца — ${game.sessionRemaining}. Пешки заморожены; своих можно брать.` : game.plies>=14 ? '✓ Сессия окончена. Пешки снова ходят.' : `До сессии: ${10-game.plies} ходов`;
   $('btn-ult').disabled = busy || !!game.result || !game.ultimateMoves().length;
-  $('btn-ult').textContent = game.turn==='w' ? 'Ульта Соколова · обмен' : 'Ульта Мишана · рыбалка';
+  $('btn-ult').textContent = game.turn==='w' ? 'Ульта Евгения · обмен' : 'Ульта Мишана · рыбалка';
   const st = $('status');
   if (game.result) st.textContent = game.result.winner ? `Победа: ${THEME.names[game.result.winner]} (${game.result.reason})` : `Ничья (${game.result.reason})`;
   else st.textContent = `Ход: ${THEME.names[game.turn]}` + (game.inCheck(game.turn) ? ' — шах!' : '');
@@ -233,7 +233,7 @@ $('btn-ult').onclick=async()=>{
   targets=game.ultimateMoves(); if(!targets.length) return;
   selected=game.kingPos(game.turn); ultMode=true;
   if(game.turn==='b') await tryMove(...selected);
-  else { paintHighlights(); $('status').textContent='Выберите фигуру для обмена с Соколовым'; }
+  else { paintHighlights(); $('status').textContent='Выберите фигуру для обмена с Евгением'; }
 };
 function startIntro() {
   busy=true; $('btn-new').disabled=true; $('btn-undo').disabled=true;
