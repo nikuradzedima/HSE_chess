@@ -120,6 +120,7 @@ const FX = (() => {
 
     const enemyK = game.kingPos(game.turn);
     const kEl = enemyK && pieceAt(...enemyK);
+    if(res.event==='zonewin') { shout(rect,'Центр наш!','gold'); confetti(); }
     if (res.event === 'check') setTimeout(() => { tremble(kEl); shout(kEl.getBoundingClientRect(), 'Ой-ой!', 'red'); }, 450);
     if (res.event === 'checkmate') setTimeout(() => { faint(kEl); shout(kEl.getBoundingClientRect(), 'Мат!', 'red'); confetti(); }, 450);
   }

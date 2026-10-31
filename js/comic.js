@@ -45,6 +45,7 @@ const Comic = (() => {
     const moverKey = me + res.piece.t, foeK = foe + 'K';
     const t = res.taken;
 
+    if(res.event==='zonewin') return [{key:moverKey,line:'Центр наш!',bg:'gold'},{sfx:'ПОБЕДА ПО ОЧКАМ',bg:'burst'}];
     if (res.event === 'checkmate') return [
       { key: moverKey, line: pick(ch(moverKey).mate) || 'Мат.', mood: 'smug', bg: 'focus' },
       { key: foeK, line: pick(ch(foeK).mated) || '…', mood: 'faint', bg: 'dots' },

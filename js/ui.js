@@ -48,7 +48,7 @@ function render() {
     if ((flipped ? c === 7 : c === 0)) cell.insertAdjacentHTML('beforeend', `<span class="coord rank">${10 - r}</span>`);
     if ((flipped ? r === 0 : r === 9)) cell.insertAdjacentHTML('beforeend', `<span class="coord file">${'abcdefgh'[c]}</span>`);
     const p = game.board[r][c];
-    if (p) { cell.appendChild(pieceEl(p)); if(p.t==='P' && game.plies>=10) cell.classList.add('frozen'); }
+    if (p) { cell.appendChild(pieceEl(p)); if(p.t==='P' && game.sessionActive) cell.classList.add('frozen'); }
     boardEl.appendChild(cell);
   }
 
@@ -57,14 +57,14 @@ function render() {
     box.classList.toggle('active', !game.result && game.turn === col);
     box.querySelector('.pname').textContent = THEME.names[col] + ` · ${game.score[col]} / ${game.limit}`;
     const taken = box.querySelector('.taken'); taken.innerHTML = '';
-    for (const t of game.captured[col]) {
-      const e = pieceEl({ t, c: col === 'w' ? 'b' : 'w' }); e.classList.add('mini'); taken.appendChild(e);
+    for (const captured of game.captured[col]) {
+      const e = pieceEl(captured); e.classList.add('mini'); taken.appendChild(e);
     }
   }
   // Сторона хода внизу при перевороте
   document.querySelector('.table').classList.toggle('flipped', flipped);
 
-  $('session').textContent = game.plies>=10 ? '❄ Сессия: пешки заморожены. Свои пешки можно брать.' : `До сессии: ${10-game.plies} ходов`;
+  $('session').textContent = game.sessionActive ? `❄ Сессия: ходов до конца — ${game.sessionRemaining}. Пешки заморожены; своих можно брать.` : game.plies>=14 ? '✓ Сессия окончена. Пешки снова ходят.' : `До сессии: ${10-game.plies} ходов`;
   $('btn-ult').disabled = busy || !!game.result || !game.ultimateMoves().length;
   $('btn-ult').textContent = game.turn==='w' ? 'Ульта Соколова · обмен' : 'Ульта Мишана · рыбалка';
   const st = $('status');
@@ -84,6 +84,7 @@ function select(r, c) {
   const p = game.board[r]?.[c];
   if (p && p.c === game.turn && !game.result) {
     selected = [r, c]; targets = game.legalMoves(r, c);
+    if(p.t==='P' && game.sessionActive) $('status').textContent=`Пешка заморожена: ходов до конца сессии — ${game.sessionRemaining}`;
     Sound.play('select', p.c + p.t);
     paintHighlights(); FX.select(r, c); return;
   } else { selected = null; targets = []; }
@@ -110,17 +111,21 @@ async function tryMove(r, c) {
   if (m.promo) { busy=true; const pick = await askPromo(game.turn); m = opts.find(o => o.promo === pick) || opts[0]; busy=false; }
   busy=true;
   if(m.ult) await ultimateScene(m);
-  const snap = FX.snapshot(m);
-  const res = game.move(m);
-  busy=false; ultMode=false; lastMove = m; selected = null; targets = [];
+  let snap;
+  try { snap = FX.snapshot(m); } catch(e) { console.error(e); }
+  let res;
+  try { res=game.move(m); } catch(e) { busy=false; selected=null; targets=[]; render(); return false; }
+  ultMode=false; lastMove = m; selected = null; targets = [];
   const p = res.piece;
   Sound.play(res.event, p.c + (m.promo || p.t));
   if (autoFlip && !game.result) flipped = game.turn === 'b';
   render();
-  try { FX.afterMove(snap, res, game); } catch (e) { console.error(e); }
+  try { if(snap) FX.afterMove(snap, res, game); } catch (e) { console.error(e); }
   let comic = Promise.resolve();
   try { comic = Comic.afterMove(res, game); } catch (e) { console.error(e); }
-  if (game.result) comic.then(() => setTimeout(showOver, Comic.enabled ? 300 : (game.result.reason === 'мат' ? 2200 : 600)));
+  await comic;
+  busy=false; render();
+  if (game.result) showOver();
   return true;
 }
 
@@ -148,6 +153,7 @@ function showOver() {
 }
 
 function newGame() {
+  if(busy) return;
   Comic.close();
   game.reset(); selected = null; targets = []; lastMove = null; flipped = false;
   $('over').close(); game.limit=+$('limit').value; Sound.play('start'); render(); startIntro();
@@ -188,11 +194,11 @@ window.addEventListener('pointerup', e => {
   tryMove(+cell.dataset.r, +cell.dataset.c).then(ok => { if (!ok) { Sound.play('illegal'); FX.illegal(d.r, d.c); } });
 });
 
-$('btn-new').onclick = () => { if (!game.log.length || game.result || confirm('Начать новую партию?')) newGame(); };
+$('btn-new').onclick = () => { if(busy) return; if (!game.log.length || game.result || confirm('Начать новую партию?')) newGame(); };
 $('btn-again').onclick = newGame;
 $('btn-undo').onclick = () => { if(busy) return; game.undo(); selected = null; targets = []; lastMove = null; if (autoFlip) flipped = game.turn === 'b'; render(); };
 $('btn-flip').onclick = () => { if(busy) return; autoFlip = !autoFlip; localStorage.setItem('chess-flip', autoFlip ? 'on' : 'off'); flipped = autoFlip && game.turn === 'b'; render(); };
-$('btn-sound').onclick = () => { Sound.toggle(); $('btn-sound').textContent=Sound.enabled?'🔊':'🔇'; };
+$('btn-sound').onclick = () => { Sound.toggle(); if(!Sound.enabled && 'speechSynthesis' in window) speechSynthesis.cancel(); $('btn-sound').textContent=Sound.enabled?'🔊':'🔇'; };
 $('btn-help').onclick = () => $('help').showModal();
 $('btn-help-close').onclick = () => $('help').close();
 $('btn-resign').onclick = () => { if (!busy && !game.result && confirm(`${THEME.names[game.turn]} сдаются?`)) { game.resign(game.turn); Sound.play('checkmate'); render(); FX.confetti(); setTimeout(showOver, 900); } };

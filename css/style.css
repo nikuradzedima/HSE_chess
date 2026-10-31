@@ -175,3 +175,5 @@ dialog ul { padding-left: 20px; line-height: 1.5; }
 /* Duel animates faces only; the board game keeps chess silhouettes. */
 .intro-board .piece-outline {display:none;}
 .intro-board .piece.portrait img.piece-face {left:12%;top:6%;width:76%;height:88%;border:2px solid #e0b04f;}
+/* Captured portraits must not inherit the full board-piece dimensions. */
+.piece.portrait.mini {width:24px;height:24px;flex:none;}

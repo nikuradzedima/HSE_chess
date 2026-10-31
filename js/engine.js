@@ -45,6 +45,9 @@ class Game {
     this._remember();
   }
 
+  get sessionActive() { return this.plies >= 10 && this.plies < 14; }
+  get sessionRemaining() { return this.sessionActive ? 14 - this.plies : 0; }
+
   at(r, c) { return inside(r, c) ? this.board[r][c] : undefined; }
 
   // Атакована ли клетка цветом by
@@ -90,7 +93,7 @@ class Game {
     const add = (tr, tc, extra = {}) => out.push({ from: [r, c], to: [tr, tc], piece: p.t, ...extra });
 
     if (def.pawn) {
-      if (this.plies >= 10) return out;
+      if (this.sessionActive) return out;
       const d = p.c === 'w' ? -1 : 1, start = p.c === 'w' ? 8 : 1, last = p.c === 'w' ? 0 : 9;
       const push = (tr, tc, extra) => tr === last
         ? ['Q','R','B','N'].forEach(t => add(tr, tc, { ...extra, promo: t }))
@@ -101,7 +104,7 @@ class Game {
       }
       for (const dc of [-1, 1]) {
         const t = this.at(r + d, c + dc);
-        if (t && t.t !== 'K' && (t.c !== p.c || (this.plies >= 10 && t.t === 'P'))) push(r + d, c + dc, { capture: true });
+        if (t && t.t !== 'K' && (t.c !== p.c || (this.sessionActive && t.t === 'P'))) push(r + d, c + dc, { capture: true });
         if (this.ep && this.ep[0] === r + d && this.ep[1] === c + dc) add(r + d, c + dc, { capture: true, enPassant: true });
       }
       return out;
@@ -109,14 +112,14 @@ class Game {
     if (def.leap) for (const [dr, dc] of def.leap) {
       const t = this.at(r + dr, c + dc);
       if (t === null) add(r + dr, c + dc);
-      else if (t && t.t !== 'K' && (t.c !== p.c || (this.plies >= 10 && t.t === 'P'))) add(r + dr, c + dc, { capture: true });
+      else if (t && t.t !== 'K' && (t.c !== p.c || (this.sessionActive && t.t === 'P'))) add(r + dr, c + dc, { capture: true });
     }
     if (def.slide) for (const [dr, dc] of def.slide) {
       let rr = r + dr, cc = c + dc;
       while (inside(rr, cc)) {
         const t = this.board[rr][cc];
         if (!t) add(rr, cc);
-        else { if (t.t !== 'K' && (t.c !== p.c || (this.plies >= 10 && t.t === 'P'))) add(rr, cc, { capture: true }); break; }
+        else { if (t.t !== 'K' && (t.c !== p.c || (this.sessionActive && t.t === 'P'))) add(rr, cc, { capture: true }); break; }
         rr += dr; cc += dc;
       }
     }
@@ -163,21 +166,23 @@ class Game {
 
   // Применить ход без проверок; состояние сохраняется для отмены
   _apply(m) {
-    this.history.push(JSON.stringify({
+    const snapshot = JSON.parse(JSON.stringify({
       board: this.board, turn: this.turn, castle: this.castle, ep: this.ep,
       halfmove: this.halfmove, captured: this.captured, result: this.result,
-      log: this.log.length, positions: this.positions, score:this.score, plies:this.plies, ults:this.ults,
+      log: this.log.length, score:this.score, plies:this.plies, ults:this.ults,
     }));
+    snapshot.positions = this.positions; // Repetition maps are immutable; do not copy them for every candidate.
+    this.history.push(snapshot);
     const [fr, fc] = m.from, [tr, tc] = m.to, p = this.board[fr][fc];
     if (m.ult) {
       this.ults[p.c] = true;
       if (p.c === 'w') { this.board[fr][fc]=this.board[tr][tc]; this.board[tr][tc]=p; }
-      else for (let r=Math.max(0,fr-1);r<=Math.min(9,fr+1);r++) for(let c=Math.max(0,fc-1);c<=Math.min(7,fc+1);c++) { const q=this.board[r][c]; if(q && q.c!==p.c && q.t!=='K') { this.captured[p.c].push(q.t); this.board[r][c]=null; } }
+      else for (let r=Math.max(0,fr-1);r<=Math.min(9,fr+1);r++) for(let c=Math.max(0,fc-1);c<=Math.min(7,fc+1);c++) { const q=this.board[r][c]; if(q && q.c!==p.c && q.t!=='K') { this.captured[p.c].push({...q}); this.board[r][c]=null; } }
       this.ep=null; this.halfmove=0; this.turn=p.c==='w'?'b':'w'; return null;
     }
     let taken = this.board[tr][tc];
     if (m.enPassant) { taken = this.board[fr][tc]; this.board[fr][tc] = null; }
-    if (taken) this.captured[p.c] = [...this.captured[p.c], taken.t];
+    if (taken) this.captured[p.c] = [...this.captured[p.c], {...taken}];
     this.board[tr][tc] = m.promo ? { t: m.promo, c: p.c } : p;
     this.board[fr][fc] = null;
     if (m.castle) {
@@ -195,24 +200,30 @@ class Game {
   }
 
   _undoRaw() {
-    const s = JSON.parse(this.history.pop());
+    const s = this.history.pop();
     Object.assign(this, { board: s.board, turn: s.turn, castle: s.castle, ep: s.ep,
       halfmove: s.halfmove, captured: s.captured, result: s.result, positions: s.positions, score:s.score, plies:s.plies, ults:s.ults });
     this.log.length = s.log;
   }
 
   _remember() {
-    const key = JSON.stringify([this.board, this.turn, this.castle, this.ep, this.score, this.ults, this.plies>=10]);
+    const key = JSON.stringify([this.board, this.turn, this.castle, this.ep, this.score, this.ults, Math.min(this.plies, 14)]);
     this.positions = { ...this.positions, [key]: (this.positions[key] || 0) + 1 };
     return this.positions[key];
   }
 
   // Публичный ход. Возвращает описание события для звука/анимации.
   move(m) {
+    if (!m || !Array.isArray(m.from) || !Array.isArray(m.to) || !inside(...m.from) || !inside(...m.to)) throw new Error('Недопустимый ход');
+    const legal = m.ult ? this.ultimateMoves() : this.legalMoves(...m.from);
+    const valid = legal.find(x => x.to[0]===m.to[0] && x.to[1]===m.to[1] && x.promo===m.promo && !!x.ult===!!m.ult);
+    if (!valid) throw new Error('Недопустимый ход');
+    m = valid;
     const p = this.board[m.from[0]][m.from[1]];
     const san = this._san(m);
     const taken = this._apply(m);
     this.plies++;
+    if(this.sessionActive) this.ep=null;
     this.score[p.c] += this.board.slice(4,6).reduce((n,row)=>n+row.slice(3,5).filter(q=>q?.c===p.c).length,0);
     const reps = this._remember();
     const check = this.inCheck(this.turn);
@@ -221,12 +232,11 @@ class Game {
     if (m.castle) event = 'castle';
     if (m.promo) event = 'promote';
     if (noMoves && check) { this.result = { winner: p.c, reason: 'мат' }; event = 'checkmate'; }
+    else if (this.score[p.c] >= this.limit) { this.result={winner:p.c,reason:'контроль центра'}; event='zonewin'; }
     else if (noMoves) { this.result = { winner: null, reason: 'пат' }; event = 'draw'; }
     else if (this.halfmove >= 100) { this.result = { winner: null, reason: 'правило 50 ходов' }; event = 'draw'; }
     else if (reps >= 3) { this.result = { winner: null, reason: 'троекратное повторение' }; event = 'draw'; }
-    else if (false && this._bareKings()) { this.result = { winner: null, reason: 'недостаточно материала' }; event = 'draw'; }
     else if (check) event = 'check';
-    if (!this.result && this.score[p.c] >= this.limit) { this.result={winner:p.c,reason:'контроль центра'}; event='checkmate'; }
     this.log.push(san + (event === 'checkmate' ? '#' : check ? '+' : ''));
     return { event, piece: p, taken, move: m };
   }
