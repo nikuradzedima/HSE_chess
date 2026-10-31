@@ -17,6 +17,9 @@ window.THEME = {
   },
 
   sounds: {
+    comicPunch: ["assets/sounds/comic/impactPunch_heavy_000.mp3", "assets/sounds/comic/impactPunch_heavy_001.mp3", "assets/sounds/comic/impactPunch_heavy_002.mp3", "assets/sounds/comic/impactPunch_heavy_003.mp3", "assets/sounds/comic/impactPunch_heavy_004.mp3", "assets/sounds/comic/impactPunch_medium_000.mp3", "assets/sounds/comic/impactPunch_medium_001.mp3", "assets/sounds/comic/impactPunch_medium_002.mp3", "assets/sounds/comic/impactPunch_medium_003.mp3", "assets/sounds/comic/impactPunch_medium_004.mp3"],
+    comicHurt: ["assets/sounds/comic/impactSoft_heavy_000.mp3", "assets/sounds/comic/impactSoft_heavy_001.mp3", "assets/sounds/comic/impactSoft_heavy_002.mp3", "assets/sounds/comic/impactSoft_heavy_003.mp3", "assets/sounds/comic/impactSoft_heavy_004.mp3", "assets/sounds/comic/impactSoft_medium_000.mp3", "assets/sounds/comic/impactSoft_medium_001.mp3", "assets/sounds/comic/impactSoft_medium_002.mp3", "assets/sounds/comic/impactSoft_medium_003.mp3", "assets/sounds/comic/impactSoft_medium_004.mp3", "assets/sounds/comic/retro_hurt_synth.mp3"],
+
     'capture:bN': 'assets/sounds/alexander-capture.mp3',
     'capture:wN': 'assets/sounds/pavel-capture.mp3',
     'capture:wR': 'assets/sounds/nina-capture.mp3',

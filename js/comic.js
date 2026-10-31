@@ -57,7 +57,7 @@ const Comic = (() => {
     ];
     if (res.event === 'check') {
       const p = [];
-      if (t) p.push({ key: moverKey, line: pick(ch(moverKey).attack), mood: 'attack', bg: 'speed' });
+      if (t) p.push({ key: moverKey, line: pick(ch(moverKey).attack), mood: 'attack', bg: 'speed', sound: 'comicPunch' });
       p.push({ key: moverKey, line: pick(ch(moverKey).check) || 'Шах!', mood: 'smug', bg: 'focus' });
       p.push({ key: foeK, line: pick(ch(foeK).worry) || 'Ой-ой!', mood: 'worry', bg: 'dots', sfx: 'ШАХ!' });
       return p.slice(-3);
@@ -68,8 +68,8 @@ const Comic = (() => {
     ];
     // Взятие: пешка за пешку — без комикса, чтобы не надоедало
     if (t && (VALUE[t.t] + VALUE[res.piece.t] > 2)) return [
-      { key: moverKey, line: pick(ch(moverKey).attack) || 'Получай!', mood: 'attack', bg: 'speed' },
-      { key: t.c + t.t, line: pick(ch(t.c + t.t).fall) || 'А-а-а!', mood: 'shock', bg: 'dots' },
+      { key: moverKey, line: pick(ch(moverKey).attack) || 'Получай!', mood: 'attack', bg: 'speed', sound: 'comicPunch' },
+      { key: t.c + t.t, line: pick(ch(t.c + t.t).fall) || 'А-а-а!', mood: 'shock', bg: 'dots', sound: 'comicHurt' },
       { sfx: pick(['БАМ!', 'ХРЯСЬ!', 'ДЫЩ!', 'БАБАХ!', 'ТЫДЫЩ!']), bg: 'burst' },
     ];
     return null;
@@ -99,6 +99,7 @@ const Comic = (() => {
       const STEP = 1000;
       panels.forEach((p, i) => timers.push(setTimeout(() => {
         const el = panelEl(p); page.appendChild(el);
+        if (p.sound) Sound.play(p.sound);
         el.animate([{ transform: 'scale(1.35) rotate(-2deg)', opacity: 0, filter: 'brightness(3)' },
                     { transform: 'scale(1)', opacity: 1, filter: 'brightness(1)' }],
                    { duration: 280, easing: 'cubic-bezier(.2,1.4,.4,1)' });

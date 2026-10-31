@@ -47,6 +47,17 @@ for(const column of [0,7]) {
  ev(`game.reset();game.board=Array.from({length:10},()=>Array(8).fill(null));game.board[9][4]={t:'K',c:'w'};game.board[0][4]={t:'K',c:'b'};game.board[5][${column}]={t:'R',c:'w'};game.board[5][3]={t:'N',c:'b'};game.score.w=15;selected=[5,${column}];targets=game.legalMoves(...selected);render();tryMove(5,3);`);
  await clock.tickAsync(9000);assert.equal(ev('game.result.reason'),'контроль центра');assert.equal(soundCalls.filter(c=>c[0]==='capture'&&c[1]==='wR').length,beforeNina+1);$('over').close();$('btn-undo').click();
 }
+// Comic impact audio follows panel timing and skips pending sounds on dismissal.
+const comicBefore=soundCalls.length;
+ev("Comic.afterMove({move:{},piece:{c:'w',t:'Q'},taken:{c:'b',t:'N'},event:'capture'},game)");
+await clock.tickAsync(799);assert.equal(soundCalls.length,comicBefore);
+await clock.tickAsync(1);assert.equal(soundCalls.at(-1)[0],'comicPunch');
+await clock.tickAsync(1000);assert.equal(soundCalls.at(-1)[0],'comicHurt');
+ev('Comic.close()');await clock.tickAsync(6000);
+assert.equal(soundCalls.length,comicBefore+2);
+ev("Comic.afterMove({move:{},piece:{c:'w',t:'Q'},taken:{c:'b',t:'N'},event:'capture'},game)");
+await clock.tickAsync(800);const beforeSkip=soundCalls.length;
+ev('Comic.close()');await clock.tickAsync(6000);assert.equal(soundCalls.length,beforeSkip);
 // Resignation and draw dialogs.
 $('btn-resign').click();await clock.tickAsync(1000);assert.equal(ev('game.result.reason'),'сдача');$('over').close();$('btn-new').click();$('duel-go').click();await clock.tickAsync(9200);$('btn-draw').click();assert.equal(ev('game.result.reason'),'соглашение');
 assert.deepEqual(errors,[]);clock.uninstall();w.close();console.log('PASS UI: both starts, 12 shots, double-start guard, effect cleanup, 32/16 limits, full 19-ply game, session/thaw, score victory, undo, restart, fishing, resignation, draw; no runtime errors');

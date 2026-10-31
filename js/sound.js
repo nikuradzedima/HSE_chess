@@ -46,6 +46,7 @@ const Sound = (() => {
     if (Array.isArray(src)) src = src[Math.floor(Math.random() * src.length)];
     if (src) {
       const a = cache[src] = cache[src] || new Audio(src);
+      a.volume = event === 'comicPunch' || event === 'comicHurt' ? .55 : 1;
       a.currentTime = 0;
       a.play().catch(() => { if(enabled) beep(synth[event] || synth.move); });
     } else if (synth[event]) beep(synth[event]);
