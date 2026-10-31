@@ -136,3 +136,42 @@ dialog ul { padding-left: 20px; line-height: 1.5; }
 .cm-sfx { position: absolute; right: 6%; bottom: 10%; font: 900 clamp(28px, 9vw, 54px)/1 Impact, 'Arial Black', sans-serif; color: #ffe14a; -webkit-text-stroke: 3px #000; text-shadow: 4px 4px 0 #000, 0 0 20px #ff5a3c; transform: rotate(-8deg); letter-spacing: 1px; }
 .bg-burst .cm-sfx { position: static; font-size: clamp(40px, 14vw, 84px); color: #fff; text-shadow: 5px 5px 0 #000, 0 0 30px #ffe14a; }
 .cm-hint { position: absolute; bottom: 10px; color: #aaa; font-size: 12px; }
+
+/* Project-school variant */
+:root { --cell: min(10.8vw, 6.7vh, 72px); }
+.board { position:relative; grid-template-rows:repeat(10,var(--cell)); transition:height .7s; }
+.board.intro-board {grid-template-rows:repeat(8,var(--cell));}
+.piece.portrait {width:78%;height:88%;border-radius:50%;overflow:hidden;border:3px solid #fff;box-shadow:0 2px 8px #0006;}
+.piece.portrait.b {border-color:#242535;outline:1px solid #fff8;}
+.piece.portrait img {object-fit:fill;filter:none;}
+.zone {box-shadow:inset 0 0 0 2px #ffe36c;background-image:linear-gradient(#ffe36644,#ffe36644)!important;}
+.zone-4-3 {border-top-left-radius:100%;}.zone-4-4 {border-top-right-radius:100%;}.zone-5-3 {border-bottom-left-radius:100%;}.zone-5-4 {border-bottom-right-radius:100%;}
+.frozen .piece {filter:drop-shadow(0 0 5px cyan);opacity:.65;}
+.frozen::after {content:'❄';position:absolute;right:0;top:0;pointer-events:none;}
+#session {font-size:14px;line-height:1.5;margin-bottom:12px;color:#b9d9f2;}#btn-ult {margin-bottom:20px;}button:disabled {opacity:.4;cursor:default;}
+#duel {text-align:center;}#duel .buttons {justify-content:center;margin-top:24px;}select {font:inherit;padding:8px;background:#272a31;color:white;border-radius:8px;}
+#scene {position:fixed;inset:0;background:#101521ed;z-index:100;display:flex;align-items:center;justify-content:center;gap:28px;flex-wrap:wrap;padding:10vw;text-align:center;}#scene[hidden] {display:none;}#scene h2 {width:100%;font-size:clamp(24px,4vw,48px);}
+.scene-face {width:130px;height:170px;object-fit:fill;border-radius:50%;border:3px solid #e0b04f;}
+.dueling .piece.w {animation:dodge .6s infinite alternate;}.dueling .piece.b {animation:dodge .5s infinite alternate-reverse;}
+@keyframes dodge {from{transform:translateX(-75%) rotate(-15deg)}to{transform:translateX(75%) rotate(15deg)}}
+.laser {position:absolute;left:55%;top:12%;height:75%;width:4px;background:#5cffff;box-shadow:0 0 18px cyan;animation:laser .5s infinite;pointer-events:none;}
+@keyframes laser {0%,60%{opacity:0;transform:rotate(-8deg)}61%,100%{opacity:1;transform:rotate(8deg)}}
+.dropping .piece {animation:drop .8s both;}@keyframes drop {from{transform:translateY(-300px) scale(.4);opacity:0}to{transform:none;opacity:1}}
+.fishes {display:flex;gap:20px;font-size:60px;}.fishes span {animation:fish 1.7s forwards;}.rod {font-size:100px;}@keyframes fish {to{transform:translate(100px,-140px) rotate(180deg) scale(0);opacity:0}}
+.sigma .scene-face {animation:sigma .6s infinite alternate;}@keyframes sigma {to{transform:scale(1.2) rotate(-10deg);filter:contrast(1.5)}}
+.cm-art {border-radius:50%;object-fit:fill!important;}
+
+.pistols {position:absolute;left:60%;top:6%;font-size:32px;pointer-events:none;} .pistols::after {content:"🔫";position:absolute;top:calc(var(--cell)*6.7);transform:rotate(180deg);}
+.zone {border-radius:0;box-shadow:none;}
+.board:not(.intro-board)::after {content:'';position:absolute;left:calc(var(--cell)*3);top:calc(var(--cell)*4);width:calc(var(--cell)*2);height:calc(var(--cell)*2);border:3px solid #ffe36c;border-radius:50%;pointer-events:none;z-index:2;}
+
+/* Keep the conventional chess silhouette visible around each portrait. */
+.piece.portrait,.piece.portrait.b {width:94%;height:94%;border:0;outline:0;box-shadow:none;border-radius:0;overflow:visible;}
+.piece.portrait img.piece-outline {position:absolute;inset:0;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 2px 2px #0007);}
+.piece.portrait img.piece-face {position:absolute;left:31%;top:48%;width:38%;height:38%;object-fit:fill;border-radius:50%;border:1px solid #6e6250;filter:none;}
+.piece.portrait[data-key$="N"] img.piece-face {left:40%;top:48%;width:32%;height:32%;}
+.piece.portrait[data-key$="B"] img.piece-face {left:34%;top:52%;width:32%;height:32%;}
+.piece.portrait.b img.piece-face {border-color:#f3deb1;}
+/* Duel animates faces only; the board game keeps chess silhouettes. */
+.intro-board .piece-outline {display:none;}
+.intro-board .piece.portrait img.piece-face {left:12%;top:6%;width:76%;height:88%;border:2px solid #e0b04f;}

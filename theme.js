@@ -7,12 +7,12 @@
 //   Ключ "<событие>:<фигура>" (например "capture:wN") важнее общего "capture".
 
 window.THEME = {
-  title: 'Шахматы',
+  title: 'Шахматы проектной школы ИП',
   names: { w: 'Белые', b: 'Чёрные' },
 
   pieces: {
-    wK: '', wQ: '', wR: '', wB: '', wN: '', wP: '',
-    bK: '', bQ: '', bR: '', bB: '', bN: '', bP: '',
+    wK: 'assets/faces/wK.svg', wQ: 'assets/faces/wQ.svg', wR: 'assets/faces/wR.svg', wB: 'assets/faces/wB.svg', wN: 'assets/faces/wN.svg', wP: '',
+    bK: 'assets/faces/bK.svg', bQ: 'assets/faces/bQ.svg', bR: 'assets/faces/bR.svg', bB: 'assets/faces/bB.svg', bN: 'assets/faces/bN.svg', bP: '',
     // пример: wN: 'assets/pieces/white-knight.png',
   },
 
